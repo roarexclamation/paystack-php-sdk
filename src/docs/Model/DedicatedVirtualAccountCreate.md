@@ -1,0 +1,12 @@
+# # DedicatedVirtualAccountCreate
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**customer** | **string** | Customer ID or code |
+**preferred_bank** | **string** | The bank slug for preferred bank. To get a list of available banks, use the List Providers endpoint | [optional]
+**subaccount** | **string** | Subaccount code of the account you want to split the transaction with | [optional]
+**split_code** | **string** | Split code consisting of the lists of accounts you want to split the transaction with | [optional]
+
+[[Back to Model list]](../../README.md#models) [[Back to API list]](../../README.md#endpoints) [[Back to README]](../../README.md)
