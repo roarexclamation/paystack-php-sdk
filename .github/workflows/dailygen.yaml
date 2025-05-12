@@ -1,0 +1,55 @@
+name: Update SDK from OpenAPI Spec
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight
+
+jobs:
+  update-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install OpenAPI Generator
+        run: npm install @openapitools/openapi-generator-cli -g
+      
+      - name: Fetch latest OpenAPI spec
+        run: |
+          curl -o openapi-spec.yaml https://raw.githubusercontent.com/paystackHQ/openapi/main/spec.yaml
+          # Change URL to the actual OpenAPI spec location
+      
+      - name: Generate SDK
+        run: |
+          openapi-generator-cli generate -i openapi-spec.yaml -g php -o . --additional-properties=invokerPackage=OpenAPI\\Client
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --quiet || echo "changes=true" >> $GITHUB_OUTPUT
+      
+      - name: Generate changelog
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          echo "## SDK Updates $(date +%Y-%m-%d)" > CHANGELOG.tmp
+          echo "" >> CHANGELOG.tmp
+          git diff --name-status >> CHANGELOG.tmp
+          echo "" >> CHANGELOG.tmp
+          cat CHANGELOG.md >> CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+      
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update SDK from latest OpenAPI spec"
+          git push
